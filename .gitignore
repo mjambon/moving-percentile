@@ -1,3 +1,7 @@
+*~
+demo
+*.out
+
 *.annot
 *.cmo
 *.cma

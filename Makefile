@@ -4,7 +4,11 @@ default: demo
 
 demo:
 	ocamlopt -o demo -annot \
-    moving_percentile.mli moving_percentile.ml demo_main.ml
+    percentile.mli percentile.ml \
+    moving_average.mli moving_average.ml \
+    moving_variance.mli moving_variance.ml \
+    moving_percentile.mli moving_percentile.ml \
+    demo_main.ml
 	./demo < data/uniform.csv > uniform.out
 
 clean:
