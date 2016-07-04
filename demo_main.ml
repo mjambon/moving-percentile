@@ -29,7 +29,7 @@ let loop () =
   let state =
     Moving_percentile.init
       ~p
-      ~delta:0.001
+      ~delta:0.005
       ()
   in
   let stream = Stream.from (fun i -> process_sample i naive_state state) in

@@ -9,7 +9,7 @@ demo:
     moving_variance.mli moving_variance.ml \
     moving_percentile.mli moving_percentile.ml \
     demo_main.ml
-	./demo < data/uniform.csv > uniform.out
+	./demo < data/various.csv > data/various.out.csv
 
 clean:
-	rm -f *~ *.cm[ioxa] *.cmx[as] *.o *.a *.annot *.out demo
+	rm -f *~ *.cm[ioxa] *.cmx[as] *.o *.a *.annot demo
