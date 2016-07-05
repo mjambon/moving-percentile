@@ -1,13 +1,16 @@
+type delta_param = [
+  | `Dynamic of float
+  | `Constant of float
+]
+
+type delta_state = [
+  | `Dynamic of (float * Moving_variance.state)
+  | `Constant
+]
+
 type param = {
   p: float;
-    (* percentile rank (within 0 .. 1) *)
-  delta: float;
-    (* constant determining by how much to adjust the estimated percentile
-       value at each iteration. Smaller values of delta
-       increase precision while greater values increase reactivity
-       and give more weight to recent observations.
-       For values typically in the range 0..1,
-       a suitable value for delta can be 0.001. *)
+  delta_param: delta_param;
 
   (* derived constants *)
   q: float;
@@ -15,15 +18,38 @@ type param = {
 
 type state = {
   param: param;
-
   mutable m: float;
-    (* estimated percentile value, i.e. ideally m is such that
-       p is the fraction of recent observations less then m. *)
+  delta_state: delta_state;
+  mutable delta: float;
+  mutable age: int;
 }
 
+let update_age state =
+  let age = state.age in
+  if age >= 0 then
+    state.age <- age + 1
+
+let update_delta state x =
+  match state.delta_state with
+  | `Constant -> ()
+  | `Dynamic (r, var_state) ->
+      Moving_variance.update var_state x;
+      (* Avoid catastrophic overestimation of the standard deviation
+         due an overestimation of the moving average
+         when |average| >> stdev.
+         We leave delta set to its initial value (0) until we have
+         a more usable standard deviation estimate. *)
+      if state.age >= 5 then (
+        let variance = Moving_variance.get var_state in
+        let stdev = sqrt variance in
+        state.delta <- r *. stdev
+      )
+
 let update state x =
-  let { param; m } = state in
-  let { p; q; delta } = param in
+  update_age state;
+  update_delta state x;
+  let { param; m; delta } = state in
+  let { p; q } = param in
   if x = m then
     ()
   else
@@ -35,7 +61,7 @@ let update state x =
     in
     state.m <- m
 
-let init_param ~p ~delta =
+let init_param ~p ~delta_param =
   if not (p > 0. && p < 1.) then
     invalid_arg "Moving_percentile.init: p";
   let q = 1. -. p in
@@ -43,12 +69,37 @@ let init_param ~p ~delta =
   assert (q < 1.);
   {
     p; q;
-    delta;
+    delta_param;
   }
 
-let init ?(m = 0.) ~p ~delta () =
-  let param = init_param ~p ~delta in
+let init_delta_state (delta_param : delta_param) : delta_state * float =
+  match delta_param with
+  | `Constant delta -> `Constant, delta
+  | `Dynamic r ->
+      let delta = 0. in
+      let delta_state =
+        let var_state =
+          Moving_variance.init
+            ~avg:0.
+            ~var:0.
+            ()
+        in
+        `Dynamic (r, var_state)
+      in
+      delta_state, delta
+
+let default_m = 0.
+let default_delta_param = `Dynamic 0.01
+
+let init ?(m = default_m) ?(delta_param = default_delta_param) ~p () =
+  let param = init_param ~p ~delta_param in
+  let delta_state, delta = init_delta_state delta_param in
   {
     param;
-    m
+    m;
+    delta_state;
+    delta;
+    age = 0;
   }
+
+let get state = state.m
