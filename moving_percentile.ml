@@ -34,18 +34,16 @@ let update_delta state x =
   | `Constant -> ()
   | `Dynamic (r, var_state) ->
       Moving_variance.update var_state x;
-      (* Avoid catastrophic overestimation of the standard deviation
-         due an overestimation of the moving average
-         when |average| >> stdev.
-         We leave delta set to its initial value (0) until we have
-         a more usable standard deviation estimate. *)
-      if state.age >= 5 then (
+      if state.age >= 2 then (
         let variance = Moving_variance.get var_state in
+        assert (variance = variance);
         let stdev = sqrt variance in
         state.delta <- r *. stdev
       )
 
 let update state x =
+  if x <> x then
+    invalid_arg "Moving_percentile.update: not a number";
   update_age state;
   update_delta state x;
   let { param; m; delta } = state in
@@ -78,12 +76,7 @@ let init_delta_state (delta_param : delta_param) : delta_state * float =
   | `Dynamic r ->
       let delta = 0. in
       let delta_state =
-        let var_state =
-          Moving_variance.init
-            ~avg:0.
-            ~var:0.
-            ()
-        in
+        let var_state = Moving_variance.init () in
         `Dynamic (r, var_state)
       in
       delta_state, delta
