@@ -41,11 +41,9 @@ type state = private {
 
 val update : state -> float -> unit
 
-val default_m : float
 val default_delta_param : delta_param
 
 val init :
-  ?m:float ->
   ?delta_param:delta_param ->
   p:float ->
   unit -> state
