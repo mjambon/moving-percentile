@@ -1,6 +1,7 @@
 *~
 demo
 *.out
+*.out.csv
 
 *.annot
 *.cmo
@@ -12,13 +13,4 @@ demo
 *.cmxs
 *.cmxa
 
-# ocamlbuild working directory
-_build/
-
-# ocamlbuild targets
-*.byte
-*.native
-
-# oasis generated files
-setup.data
-setup.log
+META

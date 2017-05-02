@@ -1,0 +1,3 @@
+requires = ""
+archive(byte) = "moving-percentile.cma"
+archive(native) = "moving-percentile.cmxa"
