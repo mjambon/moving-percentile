@@ -21,7 +21,7 @@ META: META.in
 
 install: META
 	ocamlfind install moving-percentile META \
-		`ls *.cm[ioxa] *.cmx[as] *.o *.a *.mli`
+		`ls *.cm[ioxa] *.cmx[as] *.o *.a *.mli | grep -v *_main.*`
 
 uninstall:
 	ocamlfind remove moving-percentile
