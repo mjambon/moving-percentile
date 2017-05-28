@@ -20,3 +20,6 @@ let update state x =
 
 let get state = Moving_average.get state.var
 let get_average state = Moving_average.get state.avg
+
+let get_count state =
+  state.avg.Moving_average.age

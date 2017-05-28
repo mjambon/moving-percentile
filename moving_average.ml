@@ -1,3 +1,4 @@
+(* Exponential moving average. See .mli *)
 
 type state = {
   r: float;

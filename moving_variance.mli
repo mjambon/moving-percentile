@@ -19,3 +19,7 @@ val get_average : state -> float
   (* Return the exponential moving average, which is maintained
      in order to compute the exponential moving variance.
      We need 1 observation before returning a regular float (not a nan) *)
+
+val get_count : state -> int
+  (* Return the number of observations so far, i.e. the number of times
+     `update` was called successfully. *)
