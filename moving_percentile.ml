@@ -35,9 +35,8 @@ let update_delta state x =
   | `Dynamic (r, var_state) ->
       Moving_variance.update var_state x;
       if state.age >= 2 then (
-        let variance = Moving_variance.get var_state in
-        assert (variance = variance);
-        let stdev = sqrt variance in
+        let stdev = Moving_variance.get_stdev var_state in
+        assert (stdev = stdev);
         state.delta <- r *. stdev
       )
 
