@@ -1,22 +1,27 @@
 (* Exponential moving average. See .mli *)
 
 type state = {
-  r: float;
+  mutable alpha: float;
   age_min: int;
   mutable m: float;
   mutable age: int;
 }
 
-let init ?(r = 0.1) () =
-  if not (r >= 0. && r <= 1.) then
-    invalid_arg "Moving_average.init";
-  let age_min = truncate (ceil (1. /. r)) in
+let init ?(alpha = 0.1) () =
+  if not (alpha >= 0. && alpha <= 1.) then
+    invalid_arg "Mv_avg.init";
+  let age_min = truncate (ceil (1. /. alpha)) in
   {
-    r;
+    alpha;
     age_min;
     m = nan;
     age = 0
   }
+
+let set_alpha state alpha =
+  if not (alpha >= 0. && alpha <= 1.) then
+    invalid_arg "Mv_avg.update_alpha";
+  state.alpha <- alpha
 
 let update_age state =
   let age = state.age in
@@ -25,11 +30,11 @@ let update_age state =
 
 let update state x =
   if x <> x then
-    invalid_arg "Moving_average.update: not a number";
+    invalid_arg "Mv_avg.update: not a number";
   update_age state;
-  let r =
+  let alpha =
     if state.age > state.age_min then
-      state.r
+      state.alpha
     else (
       if state.age = 1 then
         (* replace nan to avoid contamination when it's multiplied by 0 *)
@@ -38,6 +43,6 @@ let update state x =
       1. /. float state.age
     )
   in
-  state.m <- (1. -. r) *. state.m +. r *. x
+  state.m <- (1. -. alpha) *. state.m +. alpha *. x
 
 let get state = state.m

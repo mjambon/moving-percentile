@@ -4,7 +4,7 @@ type delta_param = [
 ]
 
 type delta_state = [
-  | `Dynamic of (float * Moving_variance.state)
+  | `Dynamic of (float * Mv_var.state)
   | `Constant
 ]
 
@@ -33,16 +33,16 @@ let update_delta state x =
   match state.delta_state with
   | `Constant -> ()
   | `Dynamic (r, var_state) ->
-      Moving_variance.update var_state x;
+      Mv_var.update var_state x;
       if state.age >= 2 then (
-        let stdev = Moving_variance.get_stdev var_state in
+        let stdev = Mv_var.get_stdev var_state in
         assert (stdev = stdev);
         state.delta <- r *. stdev
       )
 
 let update state x =
   if x <> x then
-    invalid_arg "Moving_percentile.update: not a number";
+    invalid_arg "Mv_percentile.update: not a number";
   update_age state;
   update_delta state x;
   let { param; m; delta } = state in
@@ -61,7 +61,7 @@ let update state x =
 
 let init_param ~p ~delta_param =
   if not (p > 0. && p < 1.) then
-    invalid_arg "Moving_percentile.init: p";
+    invalid_arg "Mv_percentile.init: p";
   let q = 1. -. p in
   assert (q > 0.);
   assert (q < 1.);
@@ -76,7 +76,7 @@ let init_delta_state (delta_param : delta_param) : delta_state * float =
   | `Dynamic r ->
       let delta = 0. in
       let delta_state =
-        let var_state = Moving_variance.init () in
+        let var_state = Mv_var.init () in
         `Dynamic (r, var_state)
       in
       delta_state, delta

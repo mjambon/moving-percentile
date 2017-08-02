@@ -4,9 +4,10 @@ default: run
 
 LIBSOURCES = \
   percentile.mli percentile.ml \
-  moving_average.mli moving_average.ml \
-	moving_variance.mli moving_variance.ml \
-	moving_percentile.mli moving_percentile.ml
+  mv_avg.mli mv_avg.ml \
+	mv_var.mli mv_var.ml \
+	mv_percentile.mli mv_percentile.ml \
+  mv_adapt.ml
 
 build:
 	ocamlfind ocamlc -a -o moving-percentile.cma -annot $(LIBSOURCES)

@@ -4,8 +4,8 @@
 *)
 
 type state = private {
-  avg: Moving_average.state;
-  var: Moving_average.state;
+  avg: Mv_avg.state;
+  var: Mv_avg.state;
 
   mutable stdev: float;
     (* square root of the estimated variance *)
@@ -14,8 +14,8 @@ type state = private {
 }
 
 val init :
-  ?r_avg:float ->
-  ?r_var:float ->
+  ?alpha_avg:float ->
+  ?alpha_var:float ->
   unit -> state
 
 val update : state -> float -> unit

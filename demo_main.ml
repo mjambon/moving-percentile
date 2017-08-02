@@ -4,19 +4,19 @@ let print_csv_header () =
   printf "i,naive100_90,naive300_90,naive1000_90,moving_90,delta,x\n"
 
 let print_csv_state i naive100 naive300 naive1000 state x =
-  let open Moving_percentile in
+  let open Mv_percentile in
   let m100, _ = Percentile.get naive100 in
   let m300, _ = Percentile.get naive300 in
   let m1000, _ = Percentile.get naive1000 in
-  let m = Moving_percentile.get state in
-  let delta = state.Moving_percentile.delta in
+  let m = Mv_percentile.get state in
+  let delta = state.Mv_percentile.delta in
   printf "%i,%g,%g,%g,%g,%g,%g\n"
     i m100 m300 m1000 m delta x
 
 let process_sample i naive100 naive300 naive1000 state =
   try
     let x = float_of_string (input_line stdin) in
-    Moving_percentile.update state x;
+    Mv_percentile.update state x;
     Percentile.update naive100 x;
     Percentile.update naive300 x;
     Percentile.update naive1000 x;
@@ -43,7 +43,7 @@ let loop () =
       p
   in
   let state =
-    Moving_percentile.init
+    Mv_percentile.init
       ~p
       ()
   in

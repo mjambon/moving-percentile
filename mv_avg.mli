@@ -1,5 +1,5 @@
 type state = private {
-  r: float;
+  mutable alpha: float;
     (* weight of the latest observation *)
 
   age_min: int;
@@ -12,8 +12,11 @@ type state = private {
     (* number of observations *)
 }
 
-val init : ?r:float -> unit -> state
+val init : ?alpha:float -> unit -> state
 
 val update : state -> float -> unit
 
 val get : state -> float
+
+val set_alpha : state -> float -> unit
+  (* Change the alpha parameter. *)
