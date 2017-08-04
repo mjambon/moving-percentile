@@ -42,29 +42,13 @@ let update { alpha_tracker; avg_tracker } x =
 let get x =
   Mv_avg.get x.avg_tracker
 
-let test_series input =
-  let state0 = Mv_avg.init ~alpha:0.1 () in
-  let state1 = init () in
-  let process_sample i x =
-    Mv_avg.update state0 x;
-    let avg0 = Mv_avg.get state0 in
-
-    update state1 x;
-    let avg1 = get state1 in
-
-    printf "[%i] %g  avg0: %g  avg1: %g\n"
-      i x avg0 avg1
-  in
-  Array.iteri process_sample (Array.of_list input)
-
-let test1 () =
-  test_series [
+module Test = struct
+  let input1 = [
     0.; 0.; 0.; 0.; 0.; 0.; 0.; 0.; 0.; 0.;
     0.; 0.; 0.; 0.; 0.; 0.; 0.; 0.; 0.; 0.;
   ]
 
-let test2 () =
-  test_series [
+  let input2 = [
     0.; 1.; 0.; 1.; 0.; 1.; 0.; 1.; 0.; 1.;
     0.; 1.; 0.; 1.; 0.; 1.; 0.; 1.; 0.; 1.;
     0.; 1.; 0.; 1.; 0.; 1.; 0.; 1.; 0.; 1.;
@@ -77,6 +61,31 @@ let test2 () =
     0.; 1.; 0.; 1.; 0.; 1.; 0.; 1.; 0.; 1.;
   ]
 
-let test3 () =
-  let input = Array.to_list (Array.init 100 (fun i -> float i)) in
-  test_series input
+  let input3 =
+    Array.to_list (Array.init 100 (fun i -> float i))
+
+  let input4 =
+    List.flatten [
+      input1; input2; input3; input3; List.rev input3; input2; input1
+    ]
+
+  let test_series input =
+    let state0 = Mv_avg.init ~alpha:0.1 () in
+    let state1 = init () in
+    let process_sample i x =
+      Mv_avg.update state0 x;
+      let avg0 = Mv_avg.get state0 in
+
+      update state1 x;
+      let gain = Mv_adapt.get_avg_gain state1.alpha_tracker in
+      let loss = Mv_adapt.get_avg_loss state1.alpha_tracker in
+      let alpha1 = Mv_adapt.get_alpha state1.alpha_tracker in
+      let avg1 = get state1 in
+
+      printf "[%i] %g  avg0: %g  gain: %g  loss: %g  alpha1: %g  avg1: %g\n"
+        i x avg0 gain loss alpha1 avg1
+    in
+    Array.iteri process_sample (Array.of_list input)
+
+  let test4 () = test_series input4
+end

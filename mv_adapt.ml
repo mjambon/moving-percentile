@@ -6,11 +6,8 @@
 *)
 
 type state = {
-  short_window: float;
-    (* inverse of alpha_max *)
-
-  long_window: float;
-    (* inverse of alpha_min *)
+  alpha_min: float;
+  alpha_max: float;
 
   gain: Mv_avg.state;
   loss: Mv_avg.state;
@@ -19,7 +16,7 @@ type state = {
 }
 
 let default_alpha_gain = 0.1
-let default_alpha_min = 0.01
+let default_alpha_min = 0.05
 let default_alpha_max = 0.5
 
 let init
@@ -32,8 +29,8 @@ let init
     invalid_arg "Adapt.init";
 
   {
-    short_window = 1. /. alpha_max;
-    long_window = 1. /. alpha_min;
+    alpha_min;
+    alpha_max;
     gain = Mv_avg.init ~alpha:alpha_gain ();
     loss = Mv_avg.init ~alpha:alpha_gain ();
     last_sample = nan;
@@ -73,11 +70,16 @@ let update state x =
   let avg_gain = Mv_avg.get state.gain in
   let avg_loss = Mv_avg.get state.loss in
   let instability = get_instability ~avg_gain ~avg_loss in
-  let wshort = state.short_window in
-  let wlong = state.long_window in
-  let window = wshort +. (wlong -. wshort) *. (1. -. instability) in
-  let alpha = 1. /. window in
+  let amin = state.alpha_min in
+  let amax = state.alpha_max in
+  let alpha = amin +. (amax -. amin) *. instability in
   state.alpha <- alpha
 
 let get_alpha state =
   state.alpha
+
+let get_avg_gain state =
+  Mv_avg.get state.gain
+
+let get_avg_loss state =
+  Mv_avg.get state.loss
