@@ -1,0 +1,14 @@
+(* -*- tuareg -*-
+
+   Launch utop from the same directory for these commands to be executed
+   on startup.
+
+*)
+
+#use "topfind";;
+#require "moving-percentile";;
+
+Printexc.record_backtrace true;;
+Sys.set_signal Sys.sigpipe Sys.Signal_ignore;;
+open Printf;;
+printf "Loaded .ocamlinit for moving-percentile.\n%!";;
