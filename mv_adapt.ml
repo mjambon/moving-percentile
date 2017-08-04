@@ -81,31 +81,3 @@ let update state x =
 
 let get_alpha state =
   state.alpha
-
-module Avg = struct
-  let init
-      ?alpha_gain
-      ?alpha_min
-      ?(alpha_max = default_alpha_max)
-      () =
-    let alpha_tracker =
-      init
-        ?alpha_gain
-        ?alpha_min
-        ~alpha_max
-        ()
-    in
-    let avg_tracker =
-      Mv_avg.init ~alpha:alpha_max ()
-    in
-    (alpha_tracker, avg_tracker)
-
-  let update (alpha_tracker, avg_tracker) x =
-    update alpha_tracker x;
-    let alpha = get_alpha alpha_tracker in
-    Mv_avg.set_alpha avg_tracker alpha;
-    Mv_avg.update avg_tracker x
-
-  let get (alpha_tracker, avg_tracker) =
-    Mv_avg.get avg_tracker
-end
