@@ -12,12 +12,14 @@ LIBSOURCES = \
   mv_adapt_avg.ml
 
 build:
-	ocamlfind ocamlc -a -o moving-percentile.cma -annot $(LIBSOURCES)
-	ocamlfind ocamlopt -a -o moving-percentile.cmxa -annot $(LIBSOURCES)
-	ocamlfind ocamlopt -o demo -annot moving-percentile.cmxa demo_main.ml
+	ocamlfind ocamlc -a -o moving-percentile.cma -bin-annot $(LIBSOURCES)
+	ocamlfind ocamlopt -a -o moving-percentile.cmxa -bin-annot $(LIBSOURCES)
+	ocamlfind ocamlopt -o perc -bin-annot moving-percentile.cmxa perc_main.ml
+	ocamlfind ocamlopt -o adapt -bin-annot moving-percentile.cmxa adapt_main.ml
 
 run: build
-	./demo < data/various.csv > data/various.out.csv
+	./perc < data/various.csv > data/various.out.csv
+	./adapt > data/adapt.out.csv
 
 META: META.in
 	cp META.in META
@@ -33,4 +35,4 @@ reinstall:
 	$(MAKE) uninstall; $(MAKE) install
 
 clean:
-	rm -f *~ *.cm[ioxa] *.cmx[as] *.o *.a *.annot demo
+	rm -f *~ *.cm[ioxa] *.cmx[as] *.o *.a *.annot perc adapt

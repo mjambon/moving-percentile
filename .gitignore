@@ -1,9 +1,12 @@
 *~
-demo
+perc
+adapt
 *.out
 *.out.csv
 
 *.annot
+*.cmt
+*.cmti
 *.cmo
 *.cma
 *.cmi

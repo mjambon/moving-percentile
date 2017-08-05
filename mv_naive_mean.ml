@@ -28,7 +28,7 @@ let get_mean l =
   List.fold_left (+.) 0. l /. float (List.length l)
 
 let update state x =
-  let samples = take state.max_window_length state.samples in
+  let samples = take state.max_window_length (x :: state.samples) in
   state.samples <- samples;
   state.mean <- get_mean samples
 
