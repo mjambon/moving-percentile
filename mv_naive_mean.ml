@@ -22,7 +22,7 @@ let rec take n l =
     | [] -> []
     | x :: l -> x :: take (n-1) l
   else
-    l
+    []
 
 let get_mean l =
   List.fold_left (+.) 0. l /. float (List.length l)
