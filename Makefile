@@ -3,7 +3,8 @@
 default: run
 
 LIBSOURCES = \
-  percentile.mli percentile.ml \
+  mv_naive_percentile.mli mv_naive_percentile.ml \
+  mv_naive_mean.mli mv_naive_mean.ml \
   mv_avg.mli mv_avg.ml \
 	mv_var.mli mv_var.ml \
 	mv_percentile.mli mv_percentile.ml \

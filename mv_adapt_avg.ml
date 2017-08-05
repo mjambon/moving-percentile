@@ -43,31 +43,21 @@ let get x =
   Mv_avg.get x.avg_tracker
 
 module Test = struct
-  let input1 = [
-    0.; 0.; 0.; 0.; 0.; 0.; 0.; 0.; 0.; 0.;
-    0.; 0.; 0.; 0.; 0.; 0.; 0.; 0.; 0.; 0.;
-  ]
+  let init_list len f = Array.to_list (Array.init len f)
 
-  let input2 = [
-    0.; 1.; 0.; 1.; 0.; 1.; 0.; 1.; 0.; 1.;
-    0.; 1.; 0.; 1.; 0.; 1.; 0.; 1.; 0.; 1.;
-    0.; 1.; 0.; 1.; 0.; 1.; 0.; 1.; 0.; 1.;
-    0.; 1.; 0.; 1.; 0.; 1.; 0.; 1.; 0.; 1.;
-    0.; 1.; 0.; 1.; 0.; 1.; 0.; 1.; 0.; 1.;
-    0.; 1.; 0.; 1.; 0.; 1.; 0.; 1.; 0.; 1.;
-    0.; 1.; 0.; 1.; 0.; 1.; 0.; 1.; 0.; 1.;
-    0.; 1.; 0.; 1.; 0.; 1.; 0.; 1.; 0.; 1.;
-    0.; 1.; 0.; 1.; 0.; 1.; 0.; 1.; 0.; 1.;
-    0.; 1.; 0.; 1.; 0.; 1.; 0.; 1.; 0.; 1.;
-  ]
+  let low = 0.
+  let high = 100.
 
-  let input3 =
-    Array.to_list (Array.init 100 (fun i -> float i))
+  let input_low = init_list 50 (fun i -> low)
+  let input_high = init_list 50 (fun i -> high)
+  let input_climb =
+    let len = 50 in
+    init_list len (fun i -> low +. (float i /. float len) *. (high -. low))
 
-  let input4 =
-    List.flatten [
-      input1; input2; input3; input3; List.rev input3; input2; input1
-    ]
+  let input_no_noise = input_low @ input_climb @ input_climb
+
+  let add_noise x = x +. Random.float 1.
+  let input_with_noise = List.map add_noise input_no_noise
 
   let test_series input =
     let state0 = Mv_avg.init ~alpha:0.1 () in
@@ -87,5 +77,5 @@ module Test = struct
     in
     Array.iteri process_sample (Array.of_list input)
 
-  let test4 () = test_series input4
+  let test () = test_series input_with_noise
 end

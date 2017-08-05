@@ -5,12 +5,12 @@ type state = {
   mutable values: float list;
 }
 
-let init ?(max_window_length = max_int) p =
+let init ?(window_length = max_int) p =
   if not (p >= 0. && p <= 1.) then
     invalid_arg "Percentile.init";
   {
     p;
-    max_window_length;
+    max_window_length = window_length;
     m = (nan, nan);
     values = [];
   }
