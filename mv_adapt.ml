@@ -5,55 +5,67 @@
    - The window should be longer when the signal is noisy.
 *)
 
-type state = {
-  alpha_min: float;
-  alpha_max: float;
+open Printf
 
-  gain: Mv_avg.state;
-  loss: Mv_avg.state;
+type state = {
+  alpha_avg: float;
+  alpha_slope: float;
+
+  alpha_avg_half_weight: float;
+  alpha_slope_half_weight: float;
+
+  avg: Mv_avg.state;
+  slope: Mv_avg.state;
+
   mutable last_sample: float;
-  mutable alpha: float;
+  mutable smoothed: float;
 }
 
-let default_alpha_gain = 0.1
-let default_alpha_min = 0.05
-let default_alpha_max = 0.5
-
-let init
-  ?(alpha_gain = default_alpha_gain)
-  ?(alpha_min = default_alpha_min)
-  ?(alpha_max = default_alpha_max)
-  () =
-
-  if not (alpha_min <= alpha_max) then
-    invalid_arg "Adapt.init";
-
-  {
-    alpha_min;
-    alpha_max;
-    gain = Mv_avg.init ~alpha:alpha_gain ();
-    loss = Mv_avg.init ~alpha:alpha_gain ();
-    last_sample = nan;
-    alpha = alpha_max;
-  }
+(*
+let default_alpha_avg = 0.0561257 (* half-weight = 12 samples *)
+let default_alpha_slope = 0.1091013 (* half-weight = 6 samples *)
+*)
+let default_alpha_avg = 0.10
+let default_alpha_slope = 0.05
 
 (*
-   Return an estimation of the signal's instability as a number
-   within [0, 1].
-   - instability is near 0 for an oscillator with a short period
-     (e.g. signal values are 0, 1, 0, 1, ...)
-   - instability is near 1 for a monotonic signal
-     (e.g. signal values are 0, 1, 2, 3, ...)
+   Determine number of samples with a weight of half in an exponential
+   moving average of parameter alpha.
+
+   alpha = 0.0561257 -> 12 samples
+   alpha = 0.1091013 -> 6 samples
 *)
-let get_instability ~avg_gain ~avg_loss =
-  let abs_elevation = abs_float (avg_gain +. avg_loss) in
-  let distance_traveled = avg_gain -. avg_loss in
-  assert (distance_traveled >= 0.);
-  assert (abs_elevation <= distance_traveled);
-  if distance_traveled = 0. then
-    1.
-  else
-    abs_elevation /. distance_traveled
+let get_half_weight alpha =
+  let result = ref 0 in
+  let sum = ref 0. in
+  try
+    for i = 0 to 1000 do
+      sum := !sum +. alpha *. (1. -. alpha) ** (float i);
+      (* printf "[%i] %g\n" i !sum; *)
+      if !sum >= 0.5 then (
+        result := i;
+        raise Exit
+      )
+    done;
+    assert false
+  with Exit ->
+    !result + 1
+
+let init
+  ?(alpha_avg = default_alpha_avg)
+  ?(alpha_slope = default_alpha_slope)
+  () =
+
+  {
+    alpha_avg;
+    alpha_slope;
+    alpha_avg_half_weight = float (get_half_weight alpha_avg);
+    alpha_slope_half_weight = float (get_half_weight alpha_slope);
+    avg = Mv_avg.init ~alpha:alpha_avg ();
+    slope = Mv_avg.init ~alpha:alpha_slope ();
+    last_sample = nan;
+    smoothed = nan;
+  }
 
 let update state x =
   assert (x = x);
@@ -64,22 +76,13 @@ let update state x =
     else
       0.
   in
-  Mv_avg.update state.gain (max diff 0.);
-  Mv_avg.update state.loss (min diff 0.);
+  Mv_avg.update state.slope diff;
+  Mv_avg.update state.avg x;
   state.last_sample <- x;
-  let avg_gain = Mv_avg.get state.gain in
-  let avg_loss = Mv_avg.get state.loss in
-  let instability = get_instability ~avg_gain ~avg_loss in
-  let amin = state.alpha_min in
-  let amax = state.alpha_max in
-  let alpha = amin +. (amax -. amin) *. instability in
-  state.alpha <- alpha
+  let avg = Mv_avg.get state.avg in
+  let slope = Mv_avg.get state.slope in
+  let smoothed = avg +. slope *. state.alpha_avg_half_weight in
+  state.smoothed <- smoothed
 
-let get_alpha state =
-  state.alpha
-
-let get_avg_gain state =
-  Mv_avg.get state.gain
-
-let get_avg_loss state =
-  Mv_avg.get state.loss
+let get_smoothed state =
+  state.smoothed

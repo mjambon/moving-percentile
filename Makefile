@@ -8,8 +8,7 @@ LIBSOURCES = \
   mv_avg.mli mv_avg.ml \
 	mv_var.mli mv_var.ml \
 	mv_percentile.mli mv_percentile.ml \
-  mv_adapt.ml \
-  mv_adapt_avg.ml
+  mv_adapt.ml
 
 build:
 	ocamlfind ocamlc -a -o moving-percentile.cma -bin-annot $(LIBSOURCES)
