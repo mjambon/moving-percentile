@@ -15,9 +15,9 @@ type state = {
   mutable alpha: float;
 }
 
-let default_alpha_gain = 0.1
-let default_alpha_min = 0.05
-let default_alpha_max = 0.5
+let default_alpha_gain = 0.05
+let default_alpha_min = 0.01
+let default_alpha_max = 1.
 
 let init
   ?(alpha_gain = default_alpha_gain)
@@ -37,6 +37,8 @@ let init
     alpha = alpha_max;
   }
 
+let sign x = if x < 0. then -1. else 1.
+
 (*
    Return an estimation of the signal's instability as a number
    within [0, 1].
@@ -53,10 +55,16 @@ let get_instability ~avg_gain ~avg_loss =
   if distance_traveled = 0. then
     1.
   else
-    abs_elevation /. distance_traveled
+    let r = abs_elevation /. distance_traveled in
+    (* prefer extreme values *)
+    let d = 2. *. (r -. 0.5) in
+    let result = 0.5 +. (sign d *. (abs_float d) ** 0.5) /. 2. in
+    assert (result >= 0. && result <= 1.);
+    result
 
 let update state x =
   assert (x = x);
+  let last_alpha = state.alpha in
   let diff =
     let last = state.last_sample in
     if last = last then
@@ -72,7 +80,8 @@ let update state x =
   let instability = get_instability ~avg_gain ~avg_loss in
   let amin = state.alpha_min in
   let amax = state.alpha_max in
-  let alpha = amin +. (amax -. amin) *. instability in
+  let alpha_ideal = amin +. (amax -. amin) *. instability in
+  let alpha = max (0.9 *. last_alpha) alpha_ideal in
   state.alpha <- alpha
 
 let get_alpha state =
