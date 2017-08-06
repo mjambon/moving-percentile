@@ -6,16 +6,24 @@ open Printf
 
 let init_list len f = Array.to_list (Array.init len f)
 
-let low = 0.
-let high = 100.
+let make_climb ~start_level:start ~end_level:end_ ~length:len =
+  init_list len (fun i -> start +. (float i /. float len) *. (end_ -. start))
 
-let input_low = init_list 50 (fun i -> low)
-let input_high = init_list 50 (fun i -> high)
-let input_climb =
-  let len = 50 in
-  init_list len (fun i -> low +. (float i /. float len) *. (high -. low))
+let level1 = 5.
+let level2 = 0.
+let level3 = 30.
 
-let input_no_noise = input_low @ input_climb @ input_high
+let segment1 = make_climb ~start_level:level1 ~end_level:level2 ~length:10
+let segment2 = init_list 80 (fun i -> level2)
+let segment3 = make_climb ~start_level:level2 ~end_level:level3 ~length:30
+let segment4 = init_list 80 (fun i -> level3)
+
+let input_no_noise = List.flatten [
+    segment1;
+    segment2;
+    segment3;
+    segment4;
+  ]
 
 let add_noise x = x +. Random.float 4.
 let input_with_noise = List.map add_noise input_no_noise
