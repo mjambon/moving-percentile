@@ -46,3 +46,5 @@ let update state x =
   state.m <- (1. -. alpha) *. state.m +. alpha *. x
 
 let get state = state.m
+
+let get_age state = state.age

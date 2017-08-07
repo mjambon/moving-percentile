@@ -33,6 +33,7 @@ let print_csv_header () =
           adapt_avg,\
           mv_exp_best,\
           mv_mean_best,\
+          normalized,\
           gain,loss,alpha\n"
 
 let print_csv_row
@@ -40,16 +41,18 @@ let print_csv_row
     ~adapt_avg
     ~mv_exp_best
     ~mv_mean_best
+    ~normalized
     ~gain ~loss ~alpha =
-  printf "%i,%g,%g,%g,%g,%g,%g,%g\n"
+  printf "%i,%g,%g,%g,%g,%g,%g,%g,%g\n"
     i x
     adapt_avg
     mv_exp_best
     mv_mean_best
+    normalized
     gain loss alpha
 
 let test_series input =
-  let state = Mv_adapt_avg.init () in
+  let state = Mv_adapt_avg.init ~track_variance:true () in
   let state_mv_exp_best = Mv_avg.init ~alpha:0.3 () in
   let state_mv_mean_best = Mv_naive_mean.init ~window_length:8 in
   let process_sample i x =
@@ -61,16 +64,19 @@ let test_series input =
 
     let open Mv_adapt_avg in
     update state x;
-    let gain = Mv_adapt.get_avg_gain state.alpha_tracker in
-    let loss = Mv_adapt.get_avg_loss state.alpha_tracker in
-    let alpha = Mv_adapt.get_alpha state.alpha_tracker in
+    let alpha_tracker = Mv_adapt_avg.get_alpha_tracker state in
+    let gain = Mv_adapt.get_avg_gain alpha_tracker in
+    let loss = Mv_adapt.get_avg_loss alpha_tracker in
+    let alpha = Mv_adapt.get_alpha alpha_tracker in
     let adapt_avg = get state in
+    let normalized = Mv_adapt_avg.get_normalized state in
 
     print_csv_row
       ~i ~x
       ~adapt_avg
       ~mv_exp_best
       ~mv_mean_best
+      ~normalized
       ~gain ~loss ~alpha
   in
   print_csv_header ();

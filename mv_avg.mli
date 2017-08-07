@@ -1,3 +1,7 @@
+(*
+   Exponential moving average
+*)
+
 type state = private {
   mutable alpha: float;
     (* weight of the latest observation *)
@@ -20,3 +24,6 @@ val get : state -> float
 
 val set_alpha : state -> float -> unit
   (* Change the alpha parameter. *)
+
+val get_age : state -> int
+  (* Return the number of observations *)
